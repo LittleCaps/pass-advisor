@@ -1,7 +1,5 @@
 # Pass Advisor · Pass Decision Simulator
 
-**English** | [中文](README.zh-CN.md)
-
 **[▶ Live demo](https://littlecaps.github.io/pass-advisor/)** — runs entirely in the browser, nothing to install.
 
 Given a frozen snapshot of both teams' **static positions**, the app estimates, for every point on the pitch:
@@ -66,7 +64,6 @@ pass_advisor/
 ├── pass_advisor.html      # the app (single-file web page: model + UI)
 ├── index.html             # identical copy served by GitHub Pages
 ├── README.md              # this file
-├── README.zh-CN.md        # Chinese version
 ├── LICENSE                # MIT
 └── figures/
     ├── app_preview.png    # three-surface output preview
