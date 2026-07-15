@@ -10,7 +10,11 @@ Given a frozen snapshot of both teams' **static positions**, the app estimates, 
 
 Research question it illustrates: *with both formations frozen at one instant, where is the best place to pass the ball?*
 
-![App preview](figures/app_preview.png)
+![Expected value surface](figures/app_ev.png)
+
+| Pass success P | Advantage ΔV | Custom target ◎ |
+|---|---|---|
+| ![P](figures/app_success.png) | ![ΔV](figures/app_advantage.png) | ![custom](figures/app_custom_target.png) |
 
 ---
 
@@ -66,10 +70,10 @@ pass_advisor/
 ├── README.md              # this file
 ├── LICENSE                # MIT
 └── figures/
-    ├── app_preview.png    # three-surface output preview
-    ├── fig1_soccermap.png # literature sketch ①: SoccerMap pass probability surface + 5×5 optimum
-    ├── fig2_unet_epv.png  # literature sketch ②: U-Net EPV reward/risk/net triptych
-    └── fig3_obpv.png      # literature sketch ③: OBSO vs OBPV pitch-wide space value
+    ├── app_success.png        # screenshot: pass success surface (default scene)
+    ├── app_advantage.png      # screenshot: advantage ΔV surface (diverging colormap)
+    ├── app_ev.png             # screenshot: expected value surface + auto ★
+    └── app_custom_target.png  # screenshot: 4-3-3 vs 5-4-1 with a custom target ◎
 ```
 
 ---
