@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>传球决策模拟器 · Pass Advisor</title>
+<title>Pass Advisor · Pass Decision Simulator</title>
 <style>
   :root{ --bg:#0f1720; --panel:#18232f; --ink:#e8eef4; --muted:#9fb3c8; --accent:#00e5ff; }
   *{box-sizing:border-box;}
-  body{margin:0;font-family:"PingFang SC","Microsoft YaHei","Heiti SC",system-ui,sans-serif;
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
        background:var(--bg);color:var(--ink);}
   header{padding:14px 20px;border-bottom:1px solid #24323f;}
   header h1{margin:0;font-size:18px;font-weight:600;}
@@ -43,8 +43,8 @@
 </head>
 <body>
 <header>
-  <h1>传球决策模拟器 · Pass Advisor</h1>
-  <p>给定双方站位,估计"传球到球场每一点的成功率"与"传球成功后己方优势的增加"。拖动球员/球即可实时更新。这是教学示意模型(非真实数据训练结果)。</p>
+  <h1>Pass Advisor · Pass Decision Simulator</h1>
+  <p>Given a frozen snapshot of both teams' positions, estimates the probability of completing a pass to every point on the pitch and the gain in team advantage if the pass succeeds. Drag players / the ball to update in real time. Teaching-purpose analytic model (not trained on real tracking data).</p>
 </header>
 
 <div class="wrap">
@@ -54,79 +54,79 @@
 
   <div class="right">
     <div class="panel">
-      <h2>显示的面</h2>
+      <h2>Displayed surface</h2>
       <div class="row">
-        <button id="m_succ" class="on">① 传球成功率</button>
-        <button id="m_adv">② 优势增加</button>
+        <button id="m_succ" class="on">① Pass success P</button>
+        <button id="m_adv">② Advantage ΔV</button>
       </div>
       <div class="row">
-        <button id="m_ev">③ 期望价值 = 成功率 × 优势</button>
+        <button id="m_ev">③ Expected value = P × ΔV</button>
       </div>
       <div id="legwrap">
         <div class="legend" id="leg"></div>
-        <div class="lbl"><span>低</span><span id="legmid">中</span><span>高</span></div>
+        <div class="lbl"><span>low</span><span id="legmid">mid</span><span>high</span></div>
       </div>
       <small class="note" id="modenote"></small>
     </div>
 
     <div class="panel">
-      <h2>阵型预设</h2>
+      <h2>Formation presets</h2>
       <div class="row">
-        <label style="color:#ff8a8a">红队</label>
+        <label style="color:#ff8a8a">Red</label>
         <select id="fRed">
-          <option value="">— 选择阵型 —</option>
+          <option value="">— formation —</option>
         </select>
       </div>
       <div class="row">
-        <label style="color:#8ab4ff">蓝队</label>
+        <label style="color:#8ab4ff">Blue</label>
         <select id="fBlue">
-          <option value="">— 选择阵型 —</option>
+          <option value="">— formation —</option>
         </select>
       </div>
-      <small class="note">红队向右进攻,蓝队镜像布置。选择后立即重摆该队站位(另一队不动),之后仍可自由拖动微调。</small>
+      <small class="note">Red attacks to the right; Blue is mirrored automatically. Selecting a formation instantly re-arranges that team only (the other team stays); you can still drag players to fine-tune.</small>
     </div>
 
     <div class="panel">
-      <h2>选中球员 <span class="pill" id="selinfo">未选中</span></h2>
+      <h2>Selected player <span class="pill" id="selinfo">none</span></h2>
       <div class="row">
-        <label>编号</label>
+        <label>No.</label>
         <input type="number" id="numIn" min="1" max="99" disabled>
-        <button id="mkOwner" disabled>设为持球者</button>
+        <button id="mkOwner" disabled>Set as passer</button>
       </div>
-      <small class="note">单击任一球员选中(黄框高亮)后可改编号;<b>双击红队球员</b>直接设为持球者(黄圈)。也可把球拖到某红队脚下 ≤2.5m 放开。</small>
+      <small class="note">Click a player to select (yellow ring) and edit the jersey number; <b>double-click a red player</b> to set them as the passer (yellow circle). You can also drag the ball to within 2.5 m of a red player.</small>
     </div>
 
     <div class="panel">
-      <h2>推荐传球点 <span class="pill" id="tgtmode">自动 ★</span></h2>
-      <div class="stat"><span id="best_lbl">依据当前"显示的面"最大值</span><b id="best_v">—</b></div>
-      <div class="row"><button id="clrTgt" disabled>清除自定义目标,恢复自动 ★</button></div>
-      <small class="note"><b>单击球场空白处</b>可手动指定传球目标(青色 ◎ 星),箭头与数值随之更新;清除后恢复为当前面自动最大值(白色 ★)。</small>
+      <h2>Recommended target <span class="pill" id="tgtmode">auto ★</span></h2>
+      <div class="stat"><span id="best_lbl">max of the current surface</span><b id="best_v">—</b></div>
+      <div class="row"><button id="clrTgt" disabled>Clear custom target (back to auto ★)</button></div>
+      <small class="note"><b>Click any empty spot on the pitch</b> to pin a custom pass target (cyan ◎ star); the arrow and readouts follow. Clear it to restore the automatic maximum of the current surface (white ★).</small>
     </div>
 
     <div class="panel">
-      <h2>光标位置 <span class="pill" id="cursorpos">—</span></h2>
-      <div class="stat"><span>传球成功率 P</span><b id="v_succ">—</b></div>
-      <div class="stat"><span>优势增加 ΔV (收益−风险)</span><b id="v_adv">—</b></div>
-      <div class="stat"><span>　· 收益 Reward</span><b id="v_rew">—</b></div>
-      <div class="stat"><span>　· 风险 Risk</span><b id="v_risk">—</b></div>
-      <div class="stat"><span>期望价值 EV = P×ΔV</span><b id="v_ev">—</b></div>
+      <h2>Cursor <span class="pill" id="cursorpos">—</span></h2>
+      <div class="stat"><span>Pass success P</span><b id="v_succ">—</b></div>
+      <div class="stat"><span>Advantage ΔV (reward − risk)</span><b id="v_adv">—</b></div>
+      <div class="stat"><span>　· Reward</span><b id="v_rew">—</b></div>
+      <div class="stat"><span>　· Risk</span><b id="v_risk">—</b></div>
+      <div class="stat"><span>Expected value EV = P×ΔV</span><b id="v_ev">—</b></div>
     </div>
 
     <div class="panel">
-      <h2>参数</h2>
-      <div class="row"><label>风险权重 λ</label><input type="range" id="lam" min="0" max="1.5" step="0.05" value="0.85"><span id="lamv" class="pill">0.85</span></div>
-      <div class="row"><label>拦截敏感度</label><input type="range" id="sig" min="0.8" max="4" step="0.1" value="1.6"><span id="sigv" class="pill">1.6</span></div>
-      <div class="row"><label>控球软硬度</label><input type="range" id="ctl" min="1" max="6" step="0.2" value="3.0"><span id="ctlv" class="pill">3.0</span></div>
-      <small class="note">λ 越大越保守(更看重丢球风险);拦截敏感度越大,防守球员离传球线路稍近就更易判为被断。</small>
+      <h2>Parameters</h2>
+      <div class="row"><label>Risk weight λ</label><input type="range" id="lam" min="0" max="1.5" step="0.05" value="0.85"><span id="lamv" class="pill">0.85</span></div>
+      <div class="row"><label>Interception sens.</label><input type="range" id="sig" min="0.8" max="4" step="0.1" value="1.6"><span id="sigv" class="pill">1.6</span></div>
+      <div class="row"><label>Control softness</label><input type="range" id="ctl" min="1" max="6" step="0.2" value="3.0"><span id="ctlv" class="pill">3.0</span></div>
+      <small class="note">Higher λ = more conservative (turnover risk weighs more); higher interception sensitivity = a defender near the passing lane blocks it more easily.</small>
     </div>
 
     <div class="panel">
-      <h2>操作</h2>
+      <h2>Actions</h2>
       <div class="row">
-        <button id="setBall">设持球者=最近红队</button>
-        <button id="reset">重置站位</button>
+        <button id="setBall">Passer = nearest red</button>
+        <button id="reset">Reset positions</button>
       </div>
-      <small class="note">拖动圆点移动球员;把 <span class="kbd">球(黄圈)</span> 拖到某红队脚下即设为持球者。手机可触摸拖动。</small>
+      <small class="note">Drag dots to move players; drop the <span class="kbd">ball (yellow circle)</span> at a red player's feet to make them the passer. Touch drag supported on mobile.</small>
     </div>
   </div>
 </div>
@@ -139,7 +139,7 @@ const sx = x => PAD + x/L*(CW-2*PAD);
 const sy = y => PAD + (W-y)/W*(CH-2*PAD);   // flip: y up
 const ix = px => (px-PAD)/(CW-2*PAD)*L;
 const iy = py => W - (py-PAD)/(CH-2*PAD)*W;
-const GOAL=[105,34];                       // 进攻目标球门 (向右)
+const GOAL=[105,34];                       // attacking goal (red attacks right)
 
 // ---------- formations (red attacking right; blue is mirrored) ----------
 // order: GK, defenders (bottom->top), midfielders, forwards
@@ -160,7 +160,7 @@ function initTeams(){
   blue:[[101,34],[80,11],[84,26],[84,42],[80,57],[72,34],[70,22],[70,47],[58,17],[60,51],[56,34]],
   redNum:[1,2,3,4,5,6,7,8,9,10,11],
   blueNum:[1,2,3,4,5,6,7,8,9,10,11],
-  ballOwner:6   // index into red (持球者)
+  ballOwner:6   // index into red (passer)
  };
 }
 let S = initTeams();
@@ -202,7 +202,7 @@ function risk(t){
   let dens=0; for(const d of S.blue){const dx=d[0]-t[0],dy=d[1]-t[1];dens+=Math.exp(-(dx*dx+dy*dy)/(2*6.5*6.5));}
   return Math.min(1,dens/2.2)*(0.5+0.5*t[0]/L);
 }
-function advantage(t){ return reward(t)-P.lam*risk(t); }        // ΔV 优势增加
+function advantage(t){ return reward(t)-P.lam*risk(t); }        // ΔV
 function expval(t){ return passSuccess(t)*Math.max(0,advantage(t)); }
 
 function surfAt(t){
@@ -310,14 +310,14 @@ function star(cx,cy,r,fill,stroke){
 // ---------- readouts ----------
 function fmt(v){return (v>=0?'':'')+v.toFixed(3);}
 function updateBest(){
-  const lbl={succ:'传球成功率',adv:'优势增加 ΔV',ev:'期望价值 EV'}[MODE];
+  const lbl={succ:'Pass success',adv:'Advantage ΔV',ev:'Expected value EV'}[MODE];
   if(manualTarget){
-    document.getElementById('tgtmode').textContent='自定义 ◎';
-    document.getElementById('best_lbl').textContent='自定义目标点数值';
+    document.getElementById('tgtmode').textContent='custom ◎';
+    document.getElementById('best_lbl').textContent='value at custom target';
     document.getElementById('best_v').textContent=`${lbl} = ${surfAt(manualTarget).toFixed(3)}  @ (${manualTarget[0].toFixed(0)}, ${manualTarget[1].toFixed(0)})`;
   }else{
-    document.getElementById('tgtmode').textContent='自动 ★';
-    document.getElementById('best_lbl').textContent='依据当前"显示的面"最大值';
+    document.getElementById('tgtmode').textContent='auto ★';
+    document.getElementById('best_lbl').textContent='max of the current surface';
     document.getElementById('best_v').textContent = bestPt? `${lbl} = ${bestVal.toFixed(3)}  @ (${bestPt[0].toFixed(0)}, ${bestPt[1].toFixed(0)})` : '—';
   }
   document.getElementById('clrTgt').disabled = !manualTarget;
@@ -336,7 +336,7 @@ function readout(t){
 function selectPlayer(type,idx){
   sel={type,idx};
   const num=(type==='red'?S.redNum:S.blueNum)[idx];
-  document.getElementById('selinfo').textContent=`${type==='red'?'红队':'蓝队'} #${num}`;
+  document.getElementById('selinfo').textContent=`${type==='red'?'Red':'Blue'} #${num}`;
   const numIn=document.getElementById('numIn');
   numIn.disabled=false; numIn.value=num;
   document.getElementById('mkOwner').disabled = (type!=='red');
@@ -344,7 +344,7 @@ function selectPlayer(type,idx){
 }
 function clearSelection(){
   sel=null;
-  document.getElementById('selinfo').textContent='未选中';
+  document.getElementById('selinfo').textContent='none';
   const numIn=document.getElementById('numIn');
   numIn.disabled=true; numIn.value='';
   document.getElementById('mkOwner').disabled=true;
@@ -384,7 +384,7 @@ function up(){
         draw();
       }
     }else if(drag&&drag.type==='ball'){
-      // 若刚拖动的是球,且落点靠近某红队(≤2.5m),自动设其为持球者
+      // if the ball was dragged and released within 2.5 m of a red player, make them the passer
       let bd=1e9,bi=-1;S.red.forEach((p,i)=>{const d=Math.hypot(p[0]-ball[0],p[1]-ball[1]);if(d<bd){bd=d;bi=i;}});
       if(bi>=0&&bd<=2.5){S.ballOwner=bi;ball=S.red[bi].slice();draw();}
     }
@@ -402,14 +402,14 @@ cv.addEventListener('dblclick',e=>{
 });
 
 // ---------- controls ----------
-const notes={succ:'亮=容易传成。综合了到位控球概率、传球线路是否被防守球员挡住、以及传球距离。',
- adv:'红=传成后己方优势增加(净值为正),蓝=为负。优势 = 收益(靠近球门且能控住) − λ×风险(该点防守压迫)。即便某点成功率高,若风险过大,优势也可能为负。',
- ev:'亮=既传得成、传成后又能显著扩大优势。EV = 成功率 × max(0,优势),用于综合推荐真正"划算"的传球。'};
+const notes={succ:'Bright = easier to complete. Combines control probability at the target, whether the passing lane is blocked by defenders, and pass distance.',
+ adv:'Red = net advantage gain is positive if the pass succeeds; blue = negative. Advantage = reward (close to goal and controllable) − λ×risk (defensive pressure at the target). A high-success point can still have negative advantage if it is too risky.',
+ ev:'Bright = both completable and clearly advantageous after completion. EV = P × max(0, ΔV) — the overall recommendation of genuinely worthwhile passes.'};
 function setMode(m){
   MODE=m;
   for(const id of ['succ','adv','ev']) document.getElementById('m_'+id).classList.toggle('on',id===m);
   document.getElementById('leg').className='legend'+(m==='adv'?' rb':'');
-  document.getElementById('legmid').textContent = m==='adv'?'0':'中';
+  document.getElementById('legmid').textContent = m==='adv'?'0':'mid';
   document.getElementById('modenote').textContent=notes[m];
   draw();
 }
@@ -431,7 +431,7 @@ document.getElementById('numIn').oninput=function(){
   if(!sel)return;
   const v=parseInt(this.value); if(!Number.isInteger(v)||v<1||v>99)return;
   (sel.type==='red'?S.redNum:S.blueNum)[sel.idx]=v;
-  document.getElementById('selinfo').textContent=`${sel.type==='red'?'红队':'蓝队'} #${v}`;
+  document.getElementById('selinfo').textContent=`${sel.type==='red'?'Red':'Blue'} #${v}`;
   draw();
 };
 document.getElementById('mkOwner').onclick=()=>{
