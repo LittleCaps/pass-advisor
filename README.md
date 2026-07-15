@@ -12,9 +12,9 @@ Research question it illustrates: *with both formations frozen at one instant, w
 
 ![Expected value surface](figures/app_ev.png)
 
-| Pass success P | Advantage ΔV | Custom target ◎ |
+| Pass success P | Advantage ΔV | Formation presets |
 |---|---|---|
-| ![P](figures/app_success.png) | ![ΔV](figures/app_advantage.png) | ![custom](figures/app_custom_target.png) |
+| ![P](figures/app_success.png) | ![ΔV](figures/app_advantage.png) | ![formations](figures/app_formations.png) |
 
 ---
 
@@ -49,10 +49,9 @@ Any of:
 
 There is also a "Passer = nearest red" button.
 
-### Choosing the target (star)
+### The recommended target (white ★)
 
-- **Auto (default)**: the app evaluates the selected surface on an 84×54 grid; the white ★ marks the maximum and a yellow arrow points to it from the passer. Switching between the three surfaces (P / ΔV / EV) moves the ★.
-- **Custom**: **click any empty spot on the pitch** to pin the pass target there (cyan ◎ star + dashed arrow); the side panel shows its values. "Clear custom target" restores the automatic ★.
+The app evaluates the selected surface on an 84×54 grid; the white ★ marks the maximum and a yellow arrow points to it from the passer. Switching between the three surfaces (P / ΔV / EV) moves the ★.
 
 ### Readouts and parameters
 
@@ -72,8 +71,8 @@ pass_advisor/
 └── figures/
     ├── app_success.png        # screenshot: pass success surface (default scene)
     ├── app_advantage.png      # screenshot: advantage ΔV surface (diverging colormap)
-    ├── app_ev.png             # screenshot: expected value surface + auto ★
-    └── app_custom_target.png  # screenshot: 4-3-3 vs 5-4-1 with a custom target ◎
+    ├── app_ev.png             # screenshot: expected value surface + recommended ★
+    └── app_formations.png     # screenshot: 4-3-3 vs 5-4-1 formation presets
 ```
 
 ---
