@@ -29,7 +29,7 @@ Open `pass_advisor.html` in any modern browser (or use the live demo above). **Z
 ### Arranging positions
 
 - **Drag** any red/blue dot to move a player; touch drag works on mobile.
-- **Formation presets**: the "Formation presets" panel re-arranges either team with one click
+- **Formation presets**: the "Teams" panel re-arranges either team with one click
   (4-3-3, 4-4-2, 4-3-1-2, 4-2-3-1, 4-1-4-1, 5-3-2, 5-4-1).
   Red attacks to the right; Blue is mirrored automatically. The other team stays put, and you can keep dragging to fine-tune.
 - "Reset positions" restores the initial example scene.
@@ -37,7 +37,7 @@ Open `pass_advisor.html` in any modern browser (or use the live demo above). **Z
 ### Jersey numbers
 
 - Each dot shows a jersey number; both teams default to 1–11.
-- **Click** a player to select it (yellow ring), then edit the number (1–99) in the "Selected player" panel.
+- **Click** a player to select it (yellow ring), then edit the number (1–99) in the "Teams" panel.
 
 ### Choosing the passer (yellow circle)
 
@@ -53,10 +53,17 @@ There is also a "Passer = nearest red" button.
 
 The app evaluates the selected surface on an 84×54 grid; the white ★ marks the maximum and a yellow arrow points to it from the passer. Switching between the three surfaces (P / ΔV / EV) moves the ★.
 
+### Offside rule
+
+- On by default ("Offside rule" checkbox in the Surface panel).
+- The dashed orange line is the offside line for the red team: the **second-last blue defender**, never behind the ball or the halfway line.
+- Targets beyond the line are darkened, count as illegal passes (P = 0, EV = 0), and are excluded from the ★ recommendation. Uncheck to disable.
+
 ### Readouts and parameters
 
-- Hover anywhere to see P / reward / risk / ΔV / EV at that point in real time.
-- Three sliders: λ (risk weight — higher is more conservative), interception sensitivity, control softness.
+- Hover anywhere to see P / reward / risk / ΔV / EV at that point in real time (Readout panel; reward/risk breakdown is behind a click-to-expand).
+- Three sliders under the collapsible "Model parameters" panel: λ (risk weight — higher is more conservative), interception sensitivity, control softness.
+- Detailed explanations are hidden behind small "?" expanders in each panel — click to reveal.
 
 ---
 
@@ -89,6 +96,7 @@ Coordinates: 105 × 68 m pitch; red attacks to the right (increasing x), toward 
 - **Risk** = Gaussian density of defenders around the target × (higher further upfield)
 - **Advantage ΔV** = reward − λ × risk (λ = 0.85 by default)
 - **Expected value EV** = P × max(0, ΔV)
+- **Offside constraint** (optional, on by default): offside line = max(second-last defender x, ball x, halfway line); targets beyond it get P = EV = 0 and are excluded from the recommendation
 
 > ⚠️ **Model status**: the formulas are a **hand-tuned analytic approximation for teaching purposes** — the framework follows the literature below, but the coefficients are **not fitted to real tracking data**. Good for illustrating the ideas, trying out formations, and interactive prototyping; serious analysis requires calibration on real data (see "Next steps").
 

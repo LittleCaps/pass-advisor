@@ -39,12 +39,18 @@
   small.note{color:var(--muted);font-size:11px;line-height:1.5;display:block;margin-top:6px;}
   .pill{font-size:11px;padding:2px 7px;border-radius:20px;background:#24323f;color:var(--muted);}
   .kbd{font-family:monospace;background:#24323f;padding:1px 5px;border-radius:4px;}
+  details.help{margin-top:8px;}
+  details.help>summary{font-size:11px;color:var(--muted);cursor:pointer;user-select:none;}
+  details.help>summary:hover{color:var(--accent);}
+  details.panel>summary{font-size:14px;font-weight:600;cursor:pointer;user-select:none;list-style-position:outside;}
+  details.panel[open]>summary{margin-bottom:10px;}
+  input[type=checkbox]{accent-color:var(--accent);}
 </style>
 </head>
 <body>
 <header>
   <h1>Pass Advisor · Pass Decision Simulator</h1>
-  <p>Given a frozen snapshot of both teams' positions, estimates the probability of completing a pass to every point on the pitch and the gain in team advantage if the pass succeeds. Drag players / the ball to update in real time. Teaching-purpose analytic model (not trained on real tracking data).</p>
+  <p>Where should the pass go? Drag players / the ball — every surface updates live. Teaching-purpose analytic model.</p>
 </header>
 
 <div class="wrap">
@@ -54,79 +60,71 @@
 
   <div class="right">
     <div class="panel">
-      <h2>Displayed surface</h2>
+      <h2>Surface</h2>
       <div class="row">
-        <button id="m_succ" class="on">① Pass success P</button>
-        <button id="m_adv">② Advantage ΔV</button>
-      </div>
-      <div class="row">
-        <button id="m_ev">③ Expected value = P × ΔV</button>
+        <button id="m_succ" class="on">P · success</button>
+        <button id="m_adv">ΔV · gain</button>
+        <button id="m_ev">EV = P×ΔV</button>
       </div>
       <div id="legwrap">
         <div class="legend" id="leg"></div>
         <div class="lbl"><span>low</span><span id="legmid">mid</span><span>high</span></div>
       </div>
-      <small class="note" id="modenote"></small>
+      <div class="row" style="margin-top:10px">
+        <label><input type="checkbox" id="offside" checked> Offside rule</label>
+      </div>
+      <details class="help"><summary>What am I looking at?</summary>
+        <small class="note" id="modenote"></small>
+        <small class="note">The white ★ marks the best point of the current surface; the yellow arrow points to it from the passer. With the offside rule on, the dashed orange line is the offside line (second-last defender, never behind the ball or halfway line); targets beyond it are darkened, count as failed passes, and are never recommended.</small>
+      </details>
     </div>
 
     <div class="panel">
-      <h2>Formation presets</h2>
+      <h2>Teams</h2>
       <div class="row">
         <label style="color:#ff8a8a">Red</label>
         <select id="fRed">
           <option value="">— formation —</option>
         </select>
-      </div>
-      <div class="row">
         <label style="color:#8ab4ff">Blue</label>
         <select id="fBlue">
           <option value="">— formation —</option>
         </select>
       </div>
-      <small class="note">Red attacks to the right; Blue is mirrored automatically. Selecting a formation instantly re-arranges that team only (the other team stays); you can still drag players to fine-tune.</small>
-    </div>
-
-    <div class="panel">
-      <h2>Selected player <span class="pill" id="selinfo">none</span></h2>
       <div class="row">
-        <label>No.</label>
-        <input type="number" id="numIn" min="1" max="99" disabled>
+        <button id="setBall">Passer = nearest red</button>
+        <button id="reset">Reset</button>
+      </div>
+      <div class="row">
+        <span class="pill" id="selinfo">no player selected</span>
+        <input type="number" id="numIn" min="1" max="99" disabled title="jersey number">
         <button id="mkOwner" disabled>Set as passer</button>
       </div>
-      <small class="note">Click a player to select (yellow ring) and edit the jersey number; <b>double-click a red player</b> to set them as the passer (yellow circle). You can also drag the ball to within 2.5 m of a red player.</small>
+      <details class="help"><summary>How to interact</summary>
+        <small class="note">Drag any dot to move a player (touch works on mobile). Click a player to select it (yellow ring) and edit its jersey number. <b>Double-click a red player</b> to make them the passer, or drag the <span class="kbd">ball (yellow circle)</span> onto a red player. Formation presets re-arrange one team only; red attacks to the right, blue is mirrored automatically.</small>
+      </details>
     </div>
 
     <div class="panel">
-      <h2>Recommended target ★</h2>
-      <div class="stat"><span>max of the current surface</span><b id="best_v">—</b></div>
-      <small class="note">The white ★ marks the maximum of the currently displayed surface; the yellow arrow points to it from the passer. Switching surfaces moves the ★.</small>
-    </div>
-
-    <div class="panel">
-      <h2>Cursor <span class="pill" id="cursorpos">—</span></h2>
+      <h2>Readout <span class="pill" id="cursorpos">—</span></h2>
+      <div class="stat"><span>Best ★</span><b id="best_v">—</b></div>
       <div class="stat"><span>Pass success P</span><b id="v_succ">—</b></div>
-      <div class="stat"><span>Advantage ΔV (reward − risk)</span><b id="v_adv">—</b></div>
-      <div class="stat"><span>　· Reward</span><b id="v_rew">—</b></div>
-      <div class="stat"><span>　· Risk</span><b id="v_risk">—</b></div>
-      <div class="stat"><span>Expected value EV = P×ΔV</span><b id="v_ev">—</b></div>
+      <div class="stat"><span>Advantage ΔV</span><b id="v_adv">—</b></div>
+      <div class="stat"><span>Expected value EV</span><b id="v_ev">—</b></div>
+      <details class="help"><summary>Reward / risk breakdown</summary>
+        <div class="stat"><span>Reward</span><b id="v_rew">—</b></div>
+        <div class="stat"><span>Risk</span><b id="v_risk">—</b></div>
+        <small class="note">Hover anywhere on the pitch to read values at the cursor. ΔV = reward − λ×risk.</small>
+      </details>
     </div>
 
-    <div class="panel">
-      <h2>Parameters</h2>
+    <details class="panel">
+      <summary>Model parameters</summary>
       <div class="row"><label>Risk weight λ</label><input type="range" id="lam" min="0" max="1.5" step="0.05" value="0.85"><span id="lamv" class="pill">0.85</span></div>
       <div class="row"><label>Interception sens.</label><input type="range" id="sig" min="0.8" max="4" step="0.1" value="1.6"><span id="sigv" class="pill">1.6</span></div>
       <div class="row"><label>Control softness</label><input type="range" id="ctl" min="1" max="6" step="0.2" value="3.0"><span id="ctlv" class="pill">3.0</span></div>
       <small class="note">Higher λ = more conservative (turnover risk weighs more); higher interception sensitivity = a defender near the passing lane blocks it more easily.</small>
-    </div>
-
-    <div class="panel">
-      <h2>Actions</h2>
-      <div class="row">
-        <button id="setBall">Passer = nearest red</button>
-        <button id="reset">Reset positions</button>
-      </div>
-      <small class="note">Drag dots to move players; drop the <span class="kbd">ball (yellow circle)</span> at a red player's feet to make them the passer. Touch drag supported on mobile.</small>
-    </div>
+    </details>
   </div>
 </div>
 
@@ -168,7 +166,18 @@ let sel = null;               // {type:'red'|'blue', idx} selected player
 
 // ---------- model ----------
 let MODE='succ';
+let OFFSIDE=true;
 const P = {lam:0.85, sig:1.6, ctl:3.0};
+
+// offside line for red (attacking right): second-last blue defender,
+// but never behind the ball or the halfway line
+function offsideX(){
+  const xs=S.blue.map(p=>p[0]).sort((a,b)=>b-a);
+  return Math.max(L/2, xs[1], ball[0]);
+}
+function isOffside(t,ox){
+  return OFFSIDE && t[0] > (ox===undefined?offsideX():ox)+0.01;
+}
 
 function minDist(pt, arr){let m=1e9;for(const p of arr){const dx=p[0]-pt[0],dy=p[1]-pt[1];m=Math.min(m,Math.hypot(dx,dy));}return m;}
 
@@ -228,14 +237,20 @@ const GX=84, GY=54;   // heatmap resolution
 let bestPt=null, bestVal=-1e9;
 function computeGrid(){
   const cells=[]; let mn=1e9,mx=-1e9;
-  for(let j=0;j<GY;j++)for(let i=0;i<GX;i++){
-    const x=(i+0.5)/GX*L, y=(j+0.5)/GY*W, v=surfAt([x,y]);
-    cells.push({x,y,v}); if(v<mn)mn=v; if(v>mx)mx=v;
-  }
-  // best point
+  const ox=offsideX();
   bestVal=-1e9;bestPt=null;
-  for(const c of cells){ if(c.v>bestVal){bestVal=c.v;bestPt=[c.x,c.y];} }
-  return {cells,mn,mx};
+  for(let j=0;j<GY;j++)for(let i=0;i<GX;i++){
+    const x=(i+0.5)/GX*L, y=(j+0.5)/GY*W;
+    const off=isOffside([x,y],ox);
+    const v=surfAt([x,y]);
+    cells.push({x,y,v,off});
+    // offside targets are illegal: excluded from scaling and from the recommendation
+    if(!off){
+      if(v<mn)mn=v; if(v>mx)mx=v;
+      if(v>bestVal){bestVal=v;bestPt=[x,y];}
+    }
+  }
+  return {cells,mn,mx,ox};
 }
 function drawPitch(){
   ctx.fillStyle='#2e8b57';ctx.fillRect(0,0,CW,CH);
@@ -253,17 +268,27 @@ function drawLines(){
   box(0,1);box(L,-1);
 }
 function draw(){
-  const {cells,mn,mx}=computeGrid();
+  const {cells,mn,mx,ox}=computeGrid();
   drawPitch();
   const cwpx=(CW-2*PAD)/GX, chpx=(CH-2*PAD)/GY;
   for(const c of cells){
-    let t,col;
-    if(MODE==='adv'){ const m=Math.max(Math.abs(mn),Math.abs(mx),1e-6); col=rdbu(c.v/m); }
-    else { t=(c.v-mn)/(mx-mn+1e-9); col=plasma(t); }
-    ctx.fillStyle=`rgba(${col[0]|0},${col[1]|0},${col[2]|0},0.72)`;
+    if(c.off){ ctx.fillStyle='rgba(8,12,18,0.55)'; }
+    else{
+      let t,col;
+      if(MODE==='adv'){ const m=Math.max(Math.abs(mn),Math.abs(mx),1e-6); col=rdbu(c.v/m); }
+      else { t=(c.v-mn)/(mx-mn+1e-9); col=plasma(t); }
+      ctx.fillStyle=`rgba(${col[0]|0},${col[1]|0},${col[2]|0},0.72)`;
+    }
     ctx.fillRect(sx(c.x)-cwpx/2, sy(c.y)-chpx/2, cwpx+1, chpx+1);
   }
   drawLines();
+  // offside line
+  if(OFFSIDE && ox<L-0.05){
+    ctx.save();
+    ctx.setLineDash([9,6]);ctx.strokeStyle='#ffb84d';ctx.lineWidth=2.5;
+    ctx.beginPath();ctx.moveTo(sx(ox),sy(0));ctx.lineTo(sx(ox),sy(W));ctx.stroke();
+    ctx.restore();
+  }
   // best point + arrow
   if(bestPt){
     ctx.strokeStyle='#ffe600';ctx.lineWidth=3;
@@ -308,13 +333,14 @@ function updateBest(){
   document.getElementById('best_v').textContent = bestPt? `${lbl} = ${bestVal.toFixed(3)}  @ (${bestPt[0].toFixed(0)}, ${bestPt[1].toFixed(0)})` : '—';
 }
 function readout(t){
-  document.getElementById('cursorpos').textContent=`(${t[0].toFixed(0)}, ${t[1].toFixed(0)}) m`;
+  const off=isOffside(t);
+  document.getElementById('cursorpos').textContent=`(${t[0].toFixed(0)}, ${t[1].toFixed(0)}) m`+(off?' · OFFSIDE':'');
   const p=passSuccess(t),rw=reward(t),rk=risk(t),adv=advantage(t),ev=p*Math.max(0,adv);
-  document.getElementById('v_succ').textContent=p.toFixed(3);
+  document.getElementById('v_succ').textContent=off?'0 · offside':p.toFixed(3);
   document.getElementById('v_adv').textContent=fmt(adv);
   document.getElementById('v_rew').textContent=rw.toFixed(3);
   document.getElementById('v_risk').textContent=rk.toFixed(3);
-  document.getElementById('v_ev').textContent=ev.toFixed(3);
+  document.getElementById('v_ev').textContent=off?'0.000':ev.toFixed(3);
 }
 
 // ---------- selection ----------
@@ -329,7 +355,7 @@ function selectPlayer(type,idx){
 }
 function clearSelection(){
   sel=null;
-  document.getElementById('selinfo').textContent='none';
+  document.getElementById('selinfo').textContent='no player selected';
   const numIn=document.getElementById('numIn');
   numIn.disabled=true; numIn.value='';
   document.getElementById('mkOwner').disabled=true;
@@ -399,6 +425,7 @@ document.getElementById('m_adv').onclick=()=>setMode('adv');
 document.getElementById('m_ev').onclick=()=>setMode('ev');
 const bind=(id,key)=>{const el=document.getElementById(id);el.oninput=()=>{P[key]=+el.value;document.getElementById(id+'v').textContent=(+el.value).toFixed(2);draw();};};
 bind('lam','lam');bind('sig','sig');bind('ctl','ctl');
+document.getElementById('offside').onchange=function(){OFFSIDE=this.checked;draw();};
 document.getElementById('reset').onclick=()=>{S=initTeams();ball=S.red[S.ballOwner].slice();clearSelection();
   document.getElementById('fRed').value='';document.getElementById('fBlue').value='';draw();};
 document.getElementById('setBall').onclick=()=>{
